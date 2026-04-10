@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SnusOClock.cy — Premium Nicotine Pouches</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+<style>
+:root {
+  --black:#0a0a0a;
+  --off:#111;
+  --card:#181818;
+  --accent:#e8ff00;
+  --accent2:#ff5e1a;
+  --text:#f0ede6;
+  --muted:#888;
+  --border:#2a2a2a;
+  --radius:10px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--black);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden;}
+
+/* NAV */
+nav{position:sticky;top:0;z-index:200;background:rgba(10,10,10,0.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:60px;}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:2px;color:var(--accent);cursor:pointer;}
+.logo span{color:var(--text);}
+.cart-btn{display:flex;align-items:center;gap:8px;background:var(--accent);color:var(--black);font-weight:600;font-size:13px;padding:8px 16px;border-radius:6px;border:none;cursor:pointer;transition:transform .15s;}
+.cart-btn:hover{transform:scale(1.03);}
+.cart-count{background:var(--black);color:var(--accent);border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;}
+
+/* HERO */
+.hero{padding:64px 24px 48px;text-align:center;position:relative;overflow:hidden;}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 50% at 50% 0%,rgba(232,255,0,0.07) 0%,transparent 70%);pointer-events:none;}
+.hero h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(52px,10vw,100px);line-height:.95;letter-spacing:3px;margin-bottom:12px;}
+.hero h1 em{color:var(--accent);font-style:normal;}
+.hero p{color:var(--muted);font-size:15px;max-width:400px;margin:0 auto 32px;}
+.admin-hint{display:inline-flex;align-items:center;gap:6px;background:#1a1a1a;border:1px solid #2e2e2e;border-radius:6px;padding:6px 14px;font-size:12px;color:var(--muted);cursor:pointer;transition:border-color .2s;}
+.admin-hint:hover{border-color:var(--accent);}
+.admin-dot{width:7px;height:7px;border-radius:50%;background:#ff5e1a;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* BRANDS */
+.brands-section{padding:0 24px 64px;max-width:1100px;margin:0 auto;}
+.section-label{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:20px;}
+.brands-tabs{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:40px;}
+.brand-tab{display:flex;align-items:center;gap:10px;padding:12px 22px;border-radius:8px;border:1.5px solid var(--border);background:var(--card);cursor:pointer;transition:all .2s;font-size:14px;font-weight:500;}
+.brand-tab:hover{border-color:#444;}
+.brand-tab.active{border-color:var(--accent);background:#1c1e0e;color:var(--accent);}
+
+/* PRODUCTS GRID */
+.products-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:20px;}
+.product-card{background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:border-color .2s,transform .2s;position:relative;}
+.product-card:hover{border-color:#3a3a3a;transform:translateY(-3px);}
+.product-card.out-of-stock{opacity:.55;}
+.product-img-wrap{position:relative;aspect-ratio:1;overflow:hidden;background:#151515;}
+.product-img-wrap img{width:100%;height:100%;object-fit:cover;transition:transform .3s;}
+.product-card:hover .product-img-wrap img{transform:scale(1.04);}
+.oos-badge{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.65);font-size:12px;font-weight:600;letter-spacing:.1em;color:#ff4444;}
+.product-info{padding:12px;}
+.product-name{font-size:14px;font-weight:500;margin-bottom:4px;line-height:1.3;cursor:pointer;border:1px dashed transparent;border-radius:4px;padding:2px 4px;transition:border-color .2s;}
+.product-name.editable:hover{border-color:#444;}
+.product-name.editing{border-color:var(--accent);background:#1a1a0a;outline:none;}
+.product-price{font-size:13px;color:var(--accent);font-weight:600;margin-bottom:10px;padding:0 4px;}
+.product-price.editable{cursor:pointer;border:1px dashed transparent;border-radius:4px;padding:1px 4px;display:inline-block;}
+.product-price.editable:hover{border-color:#444;}
+.product-price.editing{border-color:var(--accent2);background:#1a0e08;outline:none;}
+.add-btn{width:100%;padding:9px;background:var(--accent);color:var(--black);font-weight:600;font-size:13px;border:none;border-radius:6px;cursor:pointer;transition:background .15s,transform .1s;}
+.add-btn:hover{background:#d4e800;}
+.add-btn:active{transform:scale(.97);}
+.add-btn:disabled{background:#2a2a2a;color:#555;cursor:not-allowed;}
+
+/* ADMIN TOOLBAR */
+.admin-tools{display:none;position:absolute;top:8px;right:8px;gap:6px;flex-direction:column;}
+.admin-mode .admin-tools{display:flex;}
+.admin-btn{width:30px;height:30px;border-radius:6px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;opacity:.9;}
+.img-btn{background:#1a1a1a;color:#aaa;}
+.img-btn:hover{background:#222;color:#fff;}
+.oos-btn{background:#1a0000;color:#ff6b6b;}
+.oos-btn:hover{background:#2a0000;}
+.admin-bar{display:none;background:#0d1500;border-bottom:2px solid var(--accent);padding:8px 24px;font-size:13px;color:var(--accent);align-items:center;gap:12px;}
+body.admin-mode .admin-bar{display:flex;}
+
+/* CART SIDEBAR */
+.cart-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:300;opacity:0;pointer-events:none;transition:opacity .25s;}
+.cart-overlay.open{opacity:1;pointer-events:all;}
+.cart-sidebar{position:fixed;right:0;top:0;bottom:0;width:min(400px,100vw);background:#121212;border-left:1px solid var(--border);z-index:301;transform:translateX(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;}
+.cart-sidebar.open{transform:none;}
+.cart-header{padding:20px 20px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.cart-header h2{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:1px;}
+.close-btn{background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;line-height:1;}
+.cart-items{flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:12px;}
+.cart-item{display:flex;gap:12px;align-items:center;background:var(--card);border-radius:8px;padding:10px;}
+.cart-item img{width:50px;height:50px;border-radius:6px;object-fit:cover;background:#222;}
+.cart-item-info{flex:1;}
+.cart-item-name{font-size:13px;font-weight:500;margin-bottom:2px;}
+.cart-item-brand{font-size:11px;color:var(--muted);}
+.cart-item-price{font-size:13px;color:var(--accent);font-weight:600;}
+.qty-ctrl{display:flex;align-items:center;gap:8px;margin-top:6px;}
+.qty-btn{width:24px;height:24px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--text);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;}
+.qty-btn:hover{border-color:#555;}
+.qty-val{font-size:13px;font-weight:500;min-width:20px;text-align:center;}
+.cart-footer{padding:16px 20px;border-top:1px solid var(--border);}
+.cart-total{display:flex;justify-content:space-between;font-size:16px;font-weight:600;margin-bottom:16px;}
+.cart-total span:last-child{color:var(--accent);}
+.checkout-btn{width:100%;padding:14px;background:var(--accent);color:var(--black);font-weight:700;font-size:15px;border:none;border-radius:8px;cursor:pointer;transition:transform .1s;}
+.checkout-btn:hover{background:#d4e800;}
+.empty-cart{text-align:center;color:var(--muted);font-size:14px;padding:40px 0;}
+
+/* CHECKOUT MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:400;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .2s;}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal{background:#141414;border:1px solid var(--border);border-radius:16px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;}
+.modal-head{padding:24px 24px 16px;border-bottom:1px solid var(--border);}
+.modal-head h2{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px;}
+.modal-head p{font-size:13px;color:var(--muted);margin-top:4px;}
+.modal-body{padding:24px;}
+.field{margin-bottom:16px;}
+.field label{display:block;font-size:12px;font-weight:500;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em;}
+.field input,.field textarea{width:100%;background:#1a1a1a;border:1.5px solid var(--border);border-radius:8px;padding:11px 14px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:border-color .2s;}
+.field input:focus,.field textarea:focus{border-color:var(--accent);}
+.field textarea{resize:vertical;min-height:90px;}
+.cash-note{background:#1a1500;border:1px solid #3a3000;border-radius:8px;padding:12px 14px;font-size:13px;color:#e8c000;margin-bottom:20px;display:flex;gap:8px;align-items:flex-start;}
+.order-summary{background:#0f0f0f;border-radius:8px;padding:14px;margin-bottom:20px;}
+.order-summary h4{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;}
+.order-line{display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px;}
+.order-line:last-child{border-top:1px solid var(--border);padding-top:8px;margin-top:8px;font-weight:600;}
+.place-btn{width:100%;padding:14px;background:var(--accent);color:var(--black);font-weight:700;font-size:15px;border:none;border-radius:8px;cursor:pointer;}
+.place-btn:disabled{background:#333;color:#666;cursor:not-allowed;}
+.success-screen{text-align:center;padding:40px 24px;}
+.success-icon{font-size:48px;margin-bottom:16px;}
+.success-screen h2{font-family:'Bebas Neue',sans-serif;font-size:32px;color:var(--accent);margin-bottom:8px;}
+.success-screen p{color:var(--muted);font-size:14px;line-height:1.7;}
+
+/* ADMIN LOGIN MODAL */
+.admin-modal{background:#0f0f0f;border:1px solid #ff5e1a55;border-radius:14px;width:100%;max-width:360px;}
+.admin-modal .modal-head h2{color:var(--accent2);}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:10px 20px;font-size:14px;z-index:999;transition:transform .3s;white-space:nowrap;}
+.toast.show{transform:translateX(-50%) translateY(0);}
+
+/* RESPONSIVE */
+@media(max-width:600px){
+  .hero h1{font-size:52px;}
+  .products-grid{grid-template-columns:repeat(2,1fr);gap:12px;}
+  .brand-tab{padding:10px 14px;font-size:13px;}
+}
+</style>
+</head>
+<body>
+
+<!-- ADMIN BAR -->
+<div class="admin-bar" id="adminBar">
+  <span>⚡ Admin mode active</span>
+  <span style="color:#666;font-size:12px">Click any product name or price to edit. Use 📷 to change image, 🚫 to toggle stock.</span>
+  <button onclick="exitAdmin()" style="margin-left:auto;background:transparent;border:1px solid #444;color:#aaa;padding:4px 12px;border-radius:5px;cursor:pointer;font-size:12px;">Exit admin</button>
+</div>
+
+<!-- NAV -->
+<nav>
+  <div class="logo" onclick="scrollTo(0,0)">SNUSO<span>CLOCK</span>.CY</div>
+  <div style="display:flex;gap:12px;align-items:center;">
+    <button class="cart-btn" onclick="openCart()">
+      🛒 Cart <span class="cart-count" id="cartCount">0</span>
+    </button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <h1>PREMIUM<br/><em>NICOTINE</em><br/>POUCHES</h1>
+  <p>Top brands delivered to you in Cyprus. Cash on delivery.</p>
+  <div class="admin-hint" onclick="openAdminLogin()">
+    <span class="admin-dot"></span>
+    <span>Admin panel</span>
+  </div>
+</div>
+
+<!-- BRANDS -->
+<div class="brands-section">
+  <div class="section-label">Browse by brand</div>
+  <div class="brands-tabs" id="brandTabs"></div>
+  <div class="products-grid" id="productsGrid"></div>
+</div>
+
+<!-- CART OVERLAY + SIDEBAR -->
+<div class="cart-overlay" id="cartOverlay" onclick="closeCart()"></div>
+<div class="cart-sidebar" id="cartSidebar">
+  <div class="cart-header">
+    <h2>Your Cart</h2>
+    <button class="close-btn" onclick="closeCart()">✕</button>
+  </div>
+  <div class="cart-items" id="cartItems"></div>
+  <div class="cart-footer">
+    <div class="cart-total"><span>Total</span><span id="cartTotal">€0.00</span></div>
+    <button class="checkout-btn" id="checkoutBtn" onclick="openCheckout()">Place Order — Cash Only</button>
+  </div>
+</div>
+
+<!-- CHECKOUT MODAL -->
+<div class="modal-overlay" id="checkoutOverlay">
+  <div class="modal" id="checkoutModal">
+    <div class="modal-head">
+      <h2>Complete Your Order</h2>
+      <p>Fill in your details and we'll get in touch to arrange delivery.</p>
+    </div>
+    <div class="modal-body" id="checkoutBody">
+      <div class="cash-note">💵 <span><strong>Payment: Cash only.</strong> You'll pay when we meet up for delivery.</span></div>
+      <div class="order-summary" id="orderSummary"></div>
+      <div class="field"><label>First name</label><input type="text" id="fname" placeholder="Giorgos"/></div>
+      <div class="field"><label>Last name</label><input type="text" id="lname" placeholder="Papadopoulos"/></div>
+      <div class="field"><label>Mobile number</label><input type="tel" id="phone" placeholder="+357 99 000000"/></div>
+      <div class="field"><label>Address</label><textarea id="address" placeholder="Street, city, postal code..."></textarea></div>
+      <button class="place-btn" id="placeBtn" onclick="placeOrder()">Confirm Order</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN LOGIN MODAL -->
+<div class="modal-overlay" id="adminOverlay">
+  <div class="admin-modal modal">
+    <div class="modal-head">
+      <h2>Admin Access</h2>
+      <p>Enter your password to edit products.</p>
+    </div>
+    <div class="modal-body">
+      <div class="field"><label>Password</label><input type="password" id="adminPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')checkAdmin()"/></div>
+      <button class="place-btn" id="adminLoginBtn" onclick="checkAdmin()">Enter</button>
+      <button onclick="closeAdminLogin()" style="width:100%;margin-top:8px;padding:10px;background:transparent;border:1px solid #333;color:#888;border-radius:8px;cursor:pointer;font-size:14px;">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// IMPORTANT: NO secrets live here anymore.
+// - Admin password is stored in Netlify Environment Variables
+//   (Netlify Dashboard → Site Settings → Environment Variables)
+//   Key: ADMIN_PASSWORD   Value: your chosen password
+//
+// - EmailJS credentials: replace the three placeholders below
+//   with your real values. These are low-risk (client-side
+//   email SDKs are always public), but rotate them if abused.
+// ============================================================
+
+// ── EmailJS config (replace with your real values) ──────────
+const EMAILJS_PUBLIC_KEY  = "YOUR_EMAILJS_PUBLIC_KEY";   // e.g. "1aLjlbs-Dh4mMHFQL"
+const EMAILJS_SERVICE_ID  = "YOUR_EMAILJS_SERVICE_ID";   // e.g. "service_v1i387c"
+const EMAILJS_TEMPLATE_ID = "YOUR_EMAILJS_TEMPLATE_ID";  // e.g. "template_xk0e993"
+const OWNER_EMAIL         = "YOUR_EMAIL@gmail.com";       // e.g. "snusoclock.cy@gmail.com"
+// ────────────────────────────────────────────────────────────
+
+// ============================================================
+// PRODUCT DATA
+// ============================================================
+const defaultData = {
+  brands: [
+    {
+      id: "pablo",
+      name: "Pablo",
+      products: [
+        { id: "p1",  name: "Pablo Banana Ice",        price: 6.50, img: "https://placehold.co/300x300/1a1a0a/e8ff00?text=Pablo%0ABanana+Ice",       inStock: true },
+        { id: "p5",  name: "Pablo Bubblegum",          price: 6.50, img: "https://placehold.co/300x300/1a0a10/ff99cc?text=Pablo%0ABubblegum",         inStock: true },
+        { id: "p7",  name: "Pablo Pink Lemonade",      price: 6.50, img: "https://placehold.co/300x300/1a0810/ff77aa?text=Pablo%0APink+Lemonade",     inStock: true },
+        { id: "p8",  name: "Pablo Lemonade",           price: 6.50, img: "https://placehold.co/300x300/1a1a00/ffee55?text=Pablo%0ALemonade",          inStock: true },
+        { id: "p9",  name: "Pablo Grape Ice",          price: 6.50, img: "https://placehold.co/300x300/10081a/bb88ff?text=Pablo%0AGrape+Ice",         inStock: true },
+        { id: "p10", name: "Pablo Blue Raspberry",     price: 6.50, img: "https://placehold.co/300x300/08101a/44aaff?text=Pablo%0ABlue+Raspberry",    inStock: true },
+        { id: "p11", name: "Pablo Blueberry Peach Ice",price: 6.50, img: "https://placehold.co/300x300/0a0f1a/88bbff?text=Pablo%0ABlueberry+Peach",   inStock: true },
+        { id: "p12", name: "Pablo Cola",               price: 6.50, img: "https://placehold.co/300x300/0f0800/cc6622?text=Pablo%0ACola",              inStock: true },
+      ]
+    },
+    {
+      id: "greatest",
+      name: "Greatest",
+      products: [
+        { id: "g1", name: "Greatest Cold Dry", price: 6.50, img: "https://placehold.co/300x300/08101a/aaddff?text=Greatest%0ACold+Dry", inStock: true },
+      ]
+    },
+    {
+      id: "77",
+      name: "77",
+      products: [
+        { id: "s1", name: "77 Salted Caramel", price: 6.50, img: "https://placehold.co/300x300/1a1000/ddaa55?text=77%0ASalted+Caramel", inStock: true },
+      ]
+    }
+  ]
+};
+
+// ============================================================
+// STATE
+// ============================================================
+localStorage.removeItem("snusData");
+let data = JSON.parse(JSON.stringify(defaultData));
+let cart = JSON.parse(localStorage.getItem("snusCart")) || [];
+let activeBrand = data.brands[0].id;
+let adminMode = false;
+
+function saveData(){ localStorage.setItem("snusData", JSON.stringify(data)); }
+function saveCart(){ localStorage.setItem("snusCart", JSON.stringify(cart)); }
+
+// ============================================================
+// RENDER BRANDS TABS
+// ============================================================
+function renderBrands(){
+  const tabs = document.getElementById("brandTabs");
+  tabs.innerHTML = data.brands.map(b=>`
+    <div class="brand-tab ${b.id===activeBrand?'active':''}" onclick="switchBrand('${b.id}')">
+      <span style="font-size:18px">${brandEmoji(b.id)}</span>
+      <span>${b.name}</span>
+      <span style="font-size:11px;color:var(--muted)">${b.products.length} flavours</span>
+    </div>
+  `).join('');
+}
+function brandEmoji(id){ return {pablo:'🟡',greatest:'🟢','77':'🔵'}[id]||'⚪'; }
+
+function switchBrand(id){
+  activeBrand = id;
+  renderBrands();
+  renderProducts();
+}
+
+// ============================================================
+// RENDER PRODUCTS
+// ============================================================
+function renderProducts(){
+  const brand = data.brands.find(b=>b.id===activeBrand);
+  const grid = document.getElementById("productsGrid");
+  grid.innerHTML = brand.products.map(p=>`
+    <div class="product-card ${!p.inStock?'out-of-stock':''}" id="card-${p.id}">
+      ${adminMode?`<div class="admin-tools">
+        <button class="admin-btn img-btn" title="Change image" onclick="changeImg('${p.id}')">📷</button>
+        <button class="admin-btn oos-btn" title="Toggle stock" onclick="toggleStock('${p.id}')">${p.inStock?'🚫':'✅'}</button>
+      </div>`:''}
+      <div class="product-img-wrap">
+        <img src="${p.img}" alt="${p.name}" onerror="this.src='https://placehold.co/300x300/1a1a1a/444?text=No+Image'"/>
+        ${!p.inStock?`<div class="oos-badge">OUT OF STOCK</div>`:''}
+      </div>
+      <div class="product-info">
+        <div class="product-name ${adminMode?'editable':''}"
+          contenteditable="${adminMode}"
+          id="name-${p.id}"
+          onblur="saveName('${p.id}',this)"
+          onselectstart="return ${adminMode}"
+          spellcheck="false">${p.name}</div>
+        <div class="product-price ${adminMode?'editable':''}"
+          contenteditable="${adminMode}"
+          id="price-${p.id}"
+          onblur="savePrice('${p.id}',this)"
+          spellcheck="false">€${p.price.toFixed(2)}</div>
+        <button class="add-btn" ${!p.inStock?'disabled':''} onclick="addToCart('${p.id}')">
+          ${p.inStock?'Add to cart':'Out of stock'}
+        </button>
+      </div>
+    </div>
+  `).join('');
+
+  if(adminMode){
+    document.querySelectorAll('.product-name.editable').forEach(el=>{
+      el.addEventListener('focus',()=>el.classList.add('editing'));
+      el.addEventListener('blur',()=>el.classList.remove('editing'));
+    });
+    document.querySelectorAll('.product-price.editable').forEach(el=>{
+      el.addEventListener('focus',()=>{ el.classList.add('editing'); el.textContent=el.textContent.replace('€',''); });
+      el.addEventListener('blur',()=>el.classList.remove('editing'));
+    });
+  }
+}
+
+// ============================================================
+// ADMIN EDITING
+// ============================================================
+function findProduct(id){
+  for(const b of data.brands){
+    const p=b.products.find(p=>p.id===id);
+    if(p) return p;
+  }
+  return null;
+}
+
+function saveName(id,el){
+  const p=findProduct(id);
+  if(!p) return;
+  p.name=el.textContent.trim()||p.name;
+  el.textContent=p.name;
+  saveData();
+  showToast("Name updated ✓");
+}
+
+function savePrice(id,el){
+  const p=findProduct(id);
+  if(!p) return;
+  const val=parseFloat(el.textContent.replace(/[^0-9.]/g,''));
+  if(!isNaN(val)&&val>0) p.price=val;
+  el.textContent=`€${p.price.toFixed(2)}`;
+  saveData();
+  showToast("Price updated ✓");
+}
+
+function changeImg(id){
+  const url=prompt("Paste image URL for this product:");
+  if(!url) return;
+  const p=findProduct(id);
+  if(!p) return;
+  p.img=url;
+  saveData();
+  renderProducts();
+  showToast("Image updated ✓");
+}
+
+function toggleStock(id){
+  const p=findProduct(id);
+  if(!p) return;
+  p.inStock=!p.inStock;
+  saveData();
+  renderProducts();
+  showToast(p.inStock?"Back in stock ✓":"Marked out of stock");
+}
+
+// ============================================================
+// CART
+// ============================================================
+function addToCart(id){
+  const p=findProduct(id);
+  if(!p||!p.inStock) return;
+  const existing=cart.find(i=>i.id===id);
+  if(existing){ existing.qty++; }
+  else{ cart.push({id,qty:1}); }
+  saveCart();
+  updateCartCount();
+  showToast(`${p.name} added to cart`);
+  openCart();
+}
+
+function updateCartCount(){
+  const total=cart.reduce((s,i)=>s+i.qty,0);
+  document.getElementById("cartCount").textContent=total;
+}
+
+function openCart(){
+  renderCartItems();
+  document.getElementById("cartOverlay").classList.add("open");
+  document.getElementById("cartSidebar").classList.add("open");
+}
+function closeCart(){
+  document.getElementById("cartOverlay").classList.remove("open");
+  document.getElementById("cartSidebar").classList.remove("open");
+}
+
+function renderCartItems(){
+  const container=document.getElementById("cartItems");
+  if(cart.length===0){
+    container.innerHTML=`<div class="empty-cart">Your cart is empty.<br/>Add some pouches! 🛒</div>`;
+    document.getElementById("cartTotal").textContent="€0.00";
+    return;
+  }
+  let total=0;
+  container.innerHTML=cart.map(item=>{
+    const p=findProduct(item.id);
+    if(!p) return '';
+    const sub=p.price*item.qty;
+    total+=sub;
+    return `<div class="cart-item">
+      <img src="${p.img}" alt="${p.name}" onerror="this.src='https://placehold.co/50x50/222/444?text=?'"/>
+      <div class="cart-item-info">
+        <div class="cart-item-name">${p.name}</div>
+        <div class="cart-item-price">€${sub.toFixed(2)}</div>
+        <div class="qty-ctrl">
+          <button class="qty-btn" onclick="changeQty('${item.id}',-1)">−</button>
+          <span class="qty-val">${item.qty}</span>
+          <button class="qty-btn" onclick="changeQty('${item.id}',1)">+</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById("cartTotal").textContent=`€${total.toFixed(2)}`;
+}
+
+function changeQty(id,delta){
+  const item=cart.find(i=>i.id===id);
+  if(!item) return;
+  item.qty+=delta;
+  if(item.qty<=0) cart=cart.filter(i=>i.id!==id);
+  saveCart();
+  updateCartCount();
+  renderCartItems();
+}
+
+// ============================================================
+// CHECKOUT
+// ============================================================
+function openCheckout(){
+  if(cart.length===0){ showToast("Cart is empty!"); return; }
+  renderOrderSummary();
+  document.getElementById("checkoutOverlay").classList.add("open");
+  document.getElementById("checkoutBody").style.display="block";
+  document.getElementById("placeBtn").disabled=false;
+}
+function closeCheckout(){
+  document.getElementById("checkoutOverlay").classList.remove("open");
+}
+document.getElementById("checkoutOverlay").addEventListener("click",e=>{
+  if(e.target===document.getElementById("checkoutOverlay")) closeCheckout();
+});
+
+function renderOrderSummary(){
+  let lines='', total=0;
+  cart.forEach(item=>{
+    const p=findProduct(item.id);
+    if(!p) return;
+    const sub=p.price*item.qty;
+    total+=sub;
+    lines+=`<div class="order-line"><span>${p.name} × ${item.qty}</span><span>€${sub.toFixed(2)}</span></div>`;
+  });
+  lines+=`<div class="order-line"><span>Total (cash)</span><span>€${total.toFixed(2)}</span></div>`;
+  document.getElementById("orderSummary").innerHTML=`<h4>Order summary</h4>${lines}`;
+}
+
+function placeOrder(){
+  const fname=document.getElementById("fname").value.trim();
+  const lname=document.getElementById("lname").value.trim();
+  const phone=document.getElementById("phone").value.trim();
+  const address=document.getElementById("address").value.trim();
+  if(!fname||!lname||!phone||!address){ showToast("Please fill in all fields"); return; }
+
+  let orderLines='', total=0;
+  cart.forEach(item=>{
+    const p=findProduct(item.id);
+    if(!p) return;
+    const sub=p.price*item.qty;
+    total+=sub;
+    orderLines+=`${p.name} x${item.qty} = €${sub.toFixed(2)}\n`;
+  });
+
+  const btn=document.getElementById("placeBtn");
+  btn.disabled=true;
+  btn.textContent="Sending...";
+
+  emailjs.init(EMAILJS_PUBLIC_KEY);
+  emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+    customer_name: `${fname} ${lname}`,
+    phone: phone,
+    address: address,
+    order_items: orderLines,
+    total: `€${total.toFixed(2)}`,
+    to_email: OWNER_EMAIL
+  }).then(()=>{
+    document.getElementById("checkoutBody").innerHTML=`
+      <div class="success-screen">
+        <div class="success-icon">✅</div>
+        <h2>Order Sent!</h2>
+        <p>Your order has been submitted to the shop owner.<br/>
+        They'll reach out to you on <strong>${phone}</strong> to arrange delivery and payment.</p>
+        <button onclick="finishOrder()" style="margin-top:20px;padding:12px 28px;background:var(--accent);color:var(--black);font-weight:700;border:none;border-radius:8px;cursor:pointer;font-size:14px;">Back to shop</button>
+      </div>`;
+  }).catch(()=>{
+    btn.disabled=false;
+    btn.textContent="Confirm Order";
+    showToast("Failed to send order. Please try again.");
+  });
+}
+
+function finishOrder(){
+  cart=[];
+  saveCart();
+  updateCartCount();
+  renderCartItems();
+  document.getElementById("checkoutOverlay").classList.remove("open");
+  closeCart();
+  showToast("Thank you for your order!");
+}
+
+// ============================================================
+// ADMIN — password checked server-side via Netlify Function
+// ============================================================
+function openAdminLogin(){
+  document.getElementById("adminOverlay").classList.add("open");
+  setTimeout(()=>document.getElementById("adminPass").focus(),100);
+}
+function closeAdminLogin(){
+  document.getElementById("adminOverlay").classList.remove("open");
+  document.getElementById("adminPass").value="";
+}
+document.getElementById("adminOverlay").addEventListener("click",e=>{
+  if(e.target===document.getElementById("adminOverlay")) closeAdminLogin();
+});
+
+async function checkAdmin(){
+  const password = document.getElementById("adminPass").value;
+  const btn = document.getElementById("adminLoginBtn");
+
+  if(!password){ showToast("Enter a password"); return; }
+
+  btn.disabled = true;
+  btn.textContent = "Checking...";
+
+  try {
+    const response = await fetch("/.netlify/functions/auth", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password })
+    });
+
+    if(response.ok){
+      closeAdminLogin();
+      enterAdmin();
+    } else {
+      showToast("Wrong password");
+      document.getElementById("adminPass").value = "";
+    }
+  } catch(error) {
+    showToast("Error checking password — are you on Netlify?");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Enter";
+  }
+}
+
+function enterAdmin(){
+  adminMode=true;
+  document.body.classList.add("admin-mode");
+  document.getElementById("adminBar").style.display="flex";
+  renderBrands();
+  renderProducts();
+  showToast("Admin mode on — click names/prices to edit");
+}
+function exitAdmin(){
+  adminMode=false;
+  document.body.classList.remove("admin-mode");
+  document.getElementById("adminBar").style.display="none";
+  renderBrands();
+  renderProducts();
+}
+
+// ============================================================
+// TOAST
+// ============================================================
+let toastTimer;
+function showToast(msg){
+  const t=document.getElementById("toast");
+  t.textContent=msg;
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove("show"),2200);
+}
+
+// ============================================================
+// INIT
+// ============================================================
+renderBrands();
+renderProducts();
+updateCartCount();
+</script>
+</body>
+</html>
