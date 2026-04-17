@@ -251,42 +251,47 @@ body.admin-mode .admin-bar{display:flex;}
 
 // ── EmailJS config (replace with your real values) ──────────
 const EMAILJS_PUBLIC_KEY  = "udJumLxgUL8pStoyH";   // e.g. "1aLjlbs-Dh4mMHFQL"
-const EMAILJS_SERVICE_ID  = "service_ah5lu4i";   // e.g. "service_v1i387c"
+const EMAILJS_SERVICE_ID  = "service_55h3ap1";   // e.g. "service_v1i387c"
 const EMAILJS_TEMPLATE_ID = "template_j08s8vf";  // e.g. "template_xk0e993"
 const OWNER_EMAIL         = "snusoclockcy3@gmail.com";       // e.g. "snusoclock.cy@gmail.com"
 // ────────────────────────────────────────────────────────────
 
 // ============================================================
 // PRODUCT DATA
+// Images are loaded from your GitHub repo via jsDelivr CDN
 // ============================================================
+const GITHUB_USER = "robialex";
+const GITHUB_REPO = "snus-oclock-web";
+const CDN = `https://cdn.jsdelivr.net/gh/${GITHUB_USER}/${GITHUB_REPO}@main`;
+
 const defaultData = {
   brands: [
     {
       id: "pablo",
       name: "Pablo",
       products: [
-        { id: "p1",  name: "Pablo Banana Ice",        price: 6.50, img: "https://placehold.co/300x300/1a1a0a/e8ff00?text=Pablo%0ABanana+Ice",       inStock: true },
-        { id: "p5",  name: "Pablo Bubblegum",          price: 6.50, img: "https://placehold.co/300x300/1a0a10/ff99cc?text=Pablo%0ABubblegum",         inStock: true },
-        { id: "p7",  name: "Pablo Pink Lemonade",      price: 6.50, img: "https://placehold.co/300x300/1a0810/ff77aa?text=Pablo%0APink+Lemonade",     inStock: true },
-        { id: "p8",  name: "Pablo Lemonade",           price: 6.50, img: "https://placehold.co/300x300/1a1a00/ffee55?text=Pablo%0ALemonade",          inStock: true },
-        { id: "p9",  name: "Pablo Grape Ice",          price: 6.50, img: "https://placehold.co/300x300/10081a/bb88ff?text=Pablo%0AGrape+Ice",         inStock: true },
-        { id: "p10", name: "Pablo Blue Raspberry",     price: 6.50, img: "https://placehold.co/300x300/08101a/44aaff?text=Pablo%0ABlue+Raspberry",    inStock: true },
-        { id: "p11", name: "Pablo Blueberry Peach Ice",price: 6.50, img: "https://placehold.co/300x300/0a0f1a/88bbff?text=Pablo%0ABlueberry+Peach",   inStock: true },
-        { id: "p12", name: "Pablo Cola",               price: 6.50, img: "https://placehold.co/300x300/0f0800/cc6622?text=Pablo%0ACola",              inStock: true },
+        { id: "p1",  name: "Pablo Banana Ice",         price: 6.50, img: `${CDN}/pablo-banana-ice.png`,       inStock: true },
+        { id: "p5",  name: "Pablo Bubblegum",           price: 6.50, img: `${CDN}/pablo-bubblegum.png`,        inStock: true },
+        { id: "p7",  name: "Pablo Pink Lemonade",       price: 6.50, img: `${CDN}/pablo-pink-lemonade.png`,    inStock: true },
+        { id: "p8",  name: "Pablo Lemonade",            price: 6.50, img: `${CDN}/pablo-lemonade.png`,         inStock: true },
+        { id: "p9",  name: "Pablo Grape Ice",           price: 6.50, img: `${CDN}/pablo-grape-ice.png`,        inStock: true },
+        { id: "p10", name: "Pablo Blue Raspberry",      price: 6.50, img: `${CDN}/pablo-blue-raspberry.png`,   inStock: true },
+        { id: "p11", name: "Pablo Blueberry Peach Ice", price: 6.50, img: `${CDN}/pablo-blueberry-peach.png`,  inStock: true },
+        { id: "p12", name: "Pablo Cola",                price: 6.50, img: `${CDN}/pablo-cola.png`,             inStock: true },
       ]
     },
     {
       id: "greatest",
       name: "Greatest",
       products: [
-        { id: "g1", name: "Greatest Cold Dry", price: 6.50, img: "https://placehold.co/300x300/08101a/aaddff?text=Greatest%0ACold+Dry", inStock: true },
+        { id: "g1", name: "Greatest Cold Dry", price: 6.50, img: `${CDN}/greatest-cold-dry.png`, inStock: true },
       ]
     },
     {
       id: "77",
       name: "77",
       products: [
-        { id: "s1", name: "77 Salted Caramel", price: 6.50, img: "https://placehold.co/300x300/1a1000/ddaa55?text=77%0ASalted+Caramel", inStock: true },
+        { id: "s1", name: "77 Salted Caramel", price: 6.50, img: `${CDN}/77-salted-caramel.png`, inStock: true },
       ]
     }
   ]
@@ -294,14 +299,25 @@ const defaultData = {
 
 // ============================================================
 // STATE
+// Stock status persists across page loads via localStorage.
 // ============================================================
-localStorage.removeItem("snusData");
 let data = JSON.parse(JSON.stringify(defaultData));
+
+// Load saved stock status and apply on top of defaultData
+const savedStock = JSON.parse(localStorage.getItem("snusStock")) || {};
+data.brands.forEach(b => b.products.forEach(p => {
+  if(savedStock[p.id] !== undefined) p.inStock = savedStock[p.id];
+}));
+
 let cart = JSON.parse(localStorage.getItem("snusCart")) || [];
 let activeBrand = data.brands[0].id;
 let adminMode = false;
 
-function saveData(){ localStorage.setItem("snusData", JSON.stringify(data)); }
+function saveStock(){
+  const stock = {};
+  data.brands.forEach(b => b.products.forEach(p => { stock[p.id] = p.inStock; }));
+  localStorage.setItem("snusStock", JSON.stringify(stock));
+}
 function saveCart(){ localStorage.setItem("snusCart", JSON.stringify(cart)); }
 
 // ============================================================
@@ -388,7 +404,6 @@ function saveName(id,el){
   if(!p) return;
   p.name=el.textContent.trim()||p.name;
   el.textContent=p.name;
-  saveData();
   showToast("Name updated ✓");
 }
 
@@ -398,7 +413,6 @@ function savePrice(id,el){
   const val=parseFloat(el.textContent.replace(/[^0-9.]/g,''));
   if(!isNaN(val)&&val>0) p.price=val;
   el.textContent=`€${p.price.toFixed(2)}`;
-  saveData();
   showToast("Price updated ✓");
 }
 
@@ -408,7 +422,6 @@ function changeImg(id){
   const p=findProduct(id);
   if(!p) return;
   p.img=url;
-  saveData();
   renderProducts();
   showToast("Image updated ✓");
 }
@@ -417,9 +430,9 @@ function toggleStock(id){
   const p=findProduct(id);
   if(!p) return;
   p.inStock=!p.inStock;
-  saveData();
+  saveStock();
   renderProducts();
-  showToast(p.inStock?"Back in stock ✓":"Marked out of stock");
+  showToast(p.inStock?"✅ Back in stock":"🚫 Marked out of stock");
 }
 
 // ============================================================
